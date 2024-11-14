@@ -1,12 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "HCC Cheater Application",
-  "description": "A chrome extension to enable usage of chatgpt for canvas quiz completion",
+  "name": "HCC Cheater App",
+  "description": "A chrome extension for cheating on canvas quizzes",
   "options_page": "options.html",
   "background": { "service_worker": "background.bundle.js" },
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon-34.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
   },
   "icons": {
     "128": "icon-128.png"
@@ -24,5 +27,6 @@
       "resources": ["content.styles.css", "icon-128.png", "icon-34.png"],
       "matches": []
     }
-  ]
+  ],
+  "permissions":["storage"]
 }

@@ -1,11 +1,11 @@
 {
-  "name": "Hcc Cheater Application",
-  "version": "1.0.4",
-  "description": "A chrome extension to enable usage of chatgpt for canvas quiz completion",
+  "name": "HCC Cheater App",
+  "version": "1.0.5",
+  "description": "A chrome extension for cheating on canvas quizzes",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lxieyang/chrome-extension-boilerplate-react.git"
+    "url": "https://github.com/ReavesX/AcademicIntegrity"
   },
   "scripts": {
     "build": "node utils/build.js",
