@@ -1,31 +1,42 @@
 // OpenAI API Key
 const OPENAI_API_KEY = "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";
-// Listen for messages from the content script
+// Listener for messages from the content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === "questions") {
-      console.log("Questions received in background script:", request.questions);
+    if (request.type === "questionsWithOptions") {
+      console.log("Questions with options received in background script:", request.questionsWithOptions);
   
-      const questionText = request.questions.join(" ");
-      fetchOpenAIResponse(questionText).then(answerText => {
-        console.log("Answer from OpenAI API:", answerText);
-  
-        // Send the answer back to the content script
-        chrome.tabs.sendMessage(sender.tab.id, {
-          type: "answer",
-          answerText: answerText
-        }, response => {
-          console.log("Sent answer back to content script:", response);
-        });
+      // Fetch responses for each question and create an answer map
+      fetchOpenAIResponses(request.questionsWithOptions).then(answerMap => {
+        console.log("Generated answer map:", answerMap);
+        
+        // Send the question-answer map back to the content script
+        chrome.tabs.sendMessage(sender.tab.id, { type: "answerMap", answerMap });
       });
+  
       sendResponse({ status: "questions processed" });
     }
   });
   
-  // Function to call OpenAI API
-// Function to call OpenAI API
-// Function to call OpenAI's Chat API with GPT-3.5-turbo or GPT-4
-async function fetchOpenAIResponse(questionText) {
+  // Function to fetch OpenAI responses for each question with options and create a question-answer map
+  async function fetchOpenAIResponses(questionsWithOptions) {
+    const answerMap = {};
+  
+    // Loop over each question and fetch its answer from OpenAI
+    for (const { question, options } of questionsWithOptions) {
+      const answer = await fetchOpenAIResponse(question, options);
+      answerMap[question] = answer;
+    }
+    
+    return answerMap;
+  }
+  
+  // Function to call OpenAI's Chat API for a single question with options
+  async function fetchOpenAIResponse(question, options) {
     try {
+      // Format the question with options for the prompt
+      const optionsText = options.map((option, index) => `${index + 1}. ${option}`).join("\n");
+      const prompt = `Question: ${question}\nOptions:\n${optionsText}\n\nChoose the best option from the options above and respond with only the exact text of the best answer.`;
+  
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -33,10 +44,10 @@ async function fetchOpenAIResponse(questionText) {
           "Authorization": `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",  // You can also use "gpt-4" if available and needed
+          model: "gpt-3.5-turbo",  // Optionally switch to "gpt-4" if preferred
           messages: [
-            { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: questionText }
+            { role: "system", content: "You are a helpful assistant that always picks the best answer from a list of options." },
+            { role: "user", content: prompt }
           ],
           max_tokens: 50
         })
@@ -45,7 +56,7 @@ async function fetchOpenAIResponse(questionText) {
       const data = await response.json();
   
       // Log the full response for troubleshooting
-      console.log("OpenAI API response data:", data);
+      console.log("OpenAI API response data for question:", question, data);
   
       // Check if there's an error in the response
       if (data.error) {
@@ -65,4 +76,3 @@ async function fetchOpenAIResponse(questionText) {
       return "Error fetching response";
     }
   }
-  
