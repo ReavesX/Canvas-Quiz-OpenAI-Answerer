@@ -1,11 +1,9 @@
-// Ensure content script is running
+// Log to confirm content script is running
 console.log("Content script initialized.");
 
 // Function to extract questions and send them to the background script
 const extractAndSendQuestions = () => {
   const questions = [];
-  
-  // Select all potential question elements and log each
   document.querySelectorAll('.question-text, .question, label').forEach((question, index) => {
     const textContent = question.innerText.trim();
     if (textContent) {
@@ -14,7 +12,6 @@ const extractAndSendQuestions = () => {
     }
   });
 
-  // Check if questions were found and send them
   if (questions.length > 0) {
     console.log("Sending questions to background script:", questions);
     chrome.runtime.sendMessage({ type: "questions", questions }, response => {
@@ -25,29 +22,69 @@ const extractAndSendQuestions = () => {
   }
 };
 
-// Listener for response from background script with answer
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Function to delay execution by a random time between 30 and 45 seconds
+const delayRandom = () => {
+  return new Promise(resolve => {
+    const delay = Math.floor(Math.random() * (45 - 30 + 1) + 30) * 1000;
+    console.log(`Delaying for ${delay / 1000} seconds`);
+    setTimeout(resolve, delay);
+  });
+};
+
+// Listener for answer messages from the background script
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.type === "answer") {
     const { answerText } = message;
-    console.log("Answer received from background script:", answerText);
-    
-    // Log each radio button's value to check for matches
-    let matchFound = false;
-    document.querySelectorAll('input[type="radio"]').forEach((radio, index) => {
-      console.log(`Radio ${index + 1} value:`, radio.value);
-      if (radio.value.includes(answerText)) {
-        radio.checked = true;
-        console.log(`Match found! Radio button ${index + 1} selected.`);
-        matchFound = true;
-      }
-    });
+    console.log("Answer received:", answerText);
 
-    if (!matchFound) {
-      console.warn("No matching radio button found for answer:", answerText);
-    }
+    // Find matching element (radio, checkbox, or input field) and set its value
+    const updateFormElement = async () => {
+      const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
+      const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+      const textInputs = Array.from(document.querySelectorAll('input[type="text"]'));
+
+      let matched = false;
+
+      // Attempt to match the answer to a radio button
+      for (const radio of radios) {
+        if (radio.value.includes(answerText)) {
+          await delayRandom();
+          radio.checked = true;
+          console.log("Radio selected with value:", radio.value);
+          matched = true;
+          break;
+        }
+      }
+
+      // Attempt to match the answer to a checkbox if no radio matched
+      if (!matched) {
+        for (const checkbox of checkboxes) {
+          if (checkbox.value.includes(answerText)) {
+            await delayRandom();
+            checkbox.checked = true;
+            console.log("Checkbox selected with value:", checkbox.value);
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      // Fill in a text input if no radio or checkbox matched
+      if (!matched) {
+        for (const textInput of textInputs) {
+          await delayRandom();
+          textInput.value = answerText;
+          console.log("Text input filled with:", answerText);
+          break;
+        }
+      }
+    };
+
+    // Execute form update function
+    await updateFormElement();
     sendResponse({ status: "success" });
   }
 });
 
-// Trigger extraction and question sending
+// Trigger extraction and question sending on page load
 extractAndSendQuestions();
