@@ -1,6 +1,3 @@
-
-Here’s a detailed README for the script:
-
 Quiz Automation Content Script
 This script automates the process of answering quiz questions on web pages by:
 
