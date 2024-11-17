@@ -26,46 +26,43 @@ Save this script as content.js.
 Include it in a Chrome extension alongside manifest.json and a background script (background.js).
 Ensure the HTML Structure Matches:
 
-This script expects the following structure for quiz questions:
-html
-Copy code
-<div class="quiz-question">
-  <p class="question-text">What is the capital of France?</p>
-  <div class="answers">
-    <label><input type="radio" name="question_1" value="a"> Paris</label>
-    <label><input type="radio" name="question_1" value="b"> London</label>
-    <label><input type="radio" name="question_1" value="c"> Berlin</label>
-    <label><input type="radio" name="question_1" value="d"> Rome</label>
-  </div>
-</div>
-Update selectors in the script if your quiz structure differs.
-Run the Script:
+# This script expects the following structure for quiz questions:
 
-Load the extension in Chrome (via Developer Mode).
-Visit the quiz page.
-The script will automatically extract questions, send them to the background script, and apply the correct answers to the form elements.
-Code Details
-Script Workflow
-Question Extraction:
+    <div class="quiz-question">
+      <p class="question-text">What is the capital of France?</p>
+      <div class="answers">
+        <label><input type="radio" name="question_1" value="a"> Paris</label>
+        <label><input type="radio" name="question_1" value="b"> London</label>
+        <label><input type="radio" name="question_1" value="c"> Berlin</label>
+        <label><input type="radio" name="question_1" value="d"> Rome</label>
+      </div>
+    </div>
+### Update selectors in the script if your quiz structure differs.
 
-The script searches for .quiz-question blocks, extracting:
-Question text: From .question-text.
-Options: From <label> tags associated with radio or checkbox inputs.
-Text inputs: For fill-in-the-blank questions.
-Send Questions to Background Script:
+# To Run the Script:
+  Load the extension in Chrome (via Developer Mode).
+  Visit the quiz page.
+  The script will automatically extract questions, send them to the background script, and apply the correct answers to the form elements.
+  Code Details
+# Script Workflow
+  Question Extraction:  
+    The script searches for .quiz-question blocks, extracting:
+    Question text: From .question-text.
+    Options: From <label> tags associated with radio or checkbox inputs.
+    Text inputs: For fill-in-the-blank questions.
+    Send Questions to Background Script:
+    
+    Sends a structured array of questions and their options to the background script.
 
-Sends a structured array of questions and their options to the background script.
-Receive and Apply Answers:
-
-The background script fetches answers using OpenAI and returns an answerMap object:
-json
-Copy code
-{
+# Receive and Apply Answers
+## The background script fetches answers using OpenAI and returns an answerMap object: 
+` {
   "What is the capital of France?": "Paris",
   "Which of these is a mammal?": "Elephant",
   "What animal is a rodent?": "Rat"
-}
-Based on the type of question, the script:
+  } ` 
+
+## Based on the type of question, the script:
 Checks the correct radio button.
 Checks all correct checkboxes for multiple-select questions.
 Fills in text for fill-in-the-blank questions.
@@ -81,11 +78,10 @@ Clean Text Inputs:
 Removes numeric prefixes (like 1.) from ChatGPT's answers for text fields to ensure clean input.
 Random Delays
 To mimic human interaction, a random delay of 15–45 seconds is added between answering each question.
-Customization
-Change Delay Timing: Modify the delayRandom function to adjust the delay range:
 
-javascript
-Copy code
+# Customization
+## Change Delay Timing: Modify the delayRandom function to adjust the delay range:
+
 const delayRandom = () => {
   return new Promise(resolve => {
     const delay = Math.floor(Math.random() * (45 - 15 + 1) + 15) * 1000;
@@ -93,37 +89,32 @@ const delayRandom = () => {
     setTimeout(resolve, delay);
   });
 };
-Update Selectors: Adjust selectors to match the structure of your quiz page. For example:
+
+## Update Selectors: Adjust selectors to match the structure of your quiz page. For example:
 
 '.quiz-question' for question blocks.
 '.question-text' for question text.
 <label> tags for options.
-Example Logs
-Example console output for a quiz with three questions:
 
-python
-Copy code
-Content script initialized.
-Question 1: "What is the capital of France?" with options: ['Paris', 'London', 'Berlin', 'Rome']
-Question 2: "Which of these is a mammal?" with options: ['Shark', 'Elephant', 'Penguin', 'Eagle']
-Question 3: "What animal is a rodent?" with options: ['Fill in the blank']
-Sending questions with options to background script: [{...}, {...}, {...}]
-Response from background script: {status: 'questions processed'}
-Received answer map: {What is the capital of France?: 'Paris', Which of these is a mammal?: 'Elephant', What animal is a rodent?: 'Rat'}
-Processing question: "What is the capital of France?" with answer: "Paris"
-Radio selected for question "What is the capital of France?" with answer: "Paris"
-Delaying for 27 seconds
-Processing question: "Which of these is a mammal?" with answer: "Elephant"
-Checkbox selected for question "Which of these is a mammal?" with answer: "Elephant"
-Delaying for 32 seconds
-Processing question: "What animal is a rodent?" with answer: "Rat"
-Text input filled for question "What animal is a rodent?" with answer: "Rat"
-Limitations
+## Example Logs
+  Example console output for a quiz with three questions:
+  Content script initialized.
+  Question 1: "What is the capital of France?" with options: ['Paris', 'London', 'Berlin', 'Rome']
+  Question 2: "Which of these is a mammal?" with options: ['Shark', 'Elephant', 'Penguin', 'Eagle']
+  Question 3: "What animal is a rodent?" with options: ['Fill in the blank']
+  Sending questions with options to background script: [{...}, {...}, {...}]
+  Response from background script: {status: 'questions processed'}
+  Received answer map: {What is the capital of France?: 'Paris', Which of these is a mammal?: 'Elephant', What animal is a rodent?: 'Rat'}
+  Processing question: "What is the capital of France?" with answer: "Paris"
+  Radio selected for question "What is the capital of France?" with answer: "Paris"
+  Delaying for 27 seconds
+  Processing question: "Which of these is a mammal?" with answer: "Elephant"
+  Checkbox selected for question "Which of these is a mammal?" with answer: "Elephant"
+  Delaying for 32 seconds
+  Processing question: "What animal is a rodent?" with answer: "Rat"
+  Text input filled for question "What animal is a rodent?" with answer: "Rat"
+
+# Limitations
 The script assumes that the quiz follows a consistent HTML structure. If not, selectors will need to be adjusted.
 For large quizzes, OpenAI rate limits may apply.
 This README provides the necessary context and usage instructions for your script. Let me know if additional sections or clarifications are needed!
-
-
-
-
-
