@@ -97,7 +97,7 @@ const delayRandom = () => {
 <label> tags for options.
 
 ## Example Logs
-  Example console output for a quiz with three questions:
+`  Example console output for a quiz with three questions:
   Content script initialized.
   Question 1: "What is the capital of France?" with options: ['Paris', 'London', 'Berlin', 'Rome']
   Question 2: "Which of these is a mammal?" with options: ['Shark', 'Elephant', 'Penguin', 'Eagle']
@@ -112,7 +112,7 @@ const delayRandom = () => {
   Checkbox selected for question "Which of these is a mammal?" with answer: "Elephant"
   Delaying for 32 seconds
   Processing question: "What animal is a rodent?" with answer: "Rat"
-  Text input filled for question "What animal is a rodent?" with answer: "Rat"
+  Text input filled for question "What animal is a rodent?" with answer: "Rat"`
 
 # Limitations
 The script assumes that the quiz follows a consistent HTML structure. If not, selectors will need to be adjusted.
