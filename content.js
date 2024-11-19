@@ -72,11 +72,38 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
       let matched = false;
 
+      // Handle "none of these are correct" and "all are correct"
+      if (["none of these are correct", "none are correct"].includes(answer.toLowerCase())) {
+        const noneOption = Array.from(block.querySelectorAll('label')).find(label =>
+          label.innerText.toLowerCase().includes("none")
+        );
+        if (noneOption) {
+          const input = noneOption.querySelector('input');
+          if (input) {
+            input.checked = true;
+            console.log(`"None of these are correct" selected for question "${question}"`);
+            return;
+          }
+        }
+      } else if (["all are correct", "all of these are correct"].includes(answer.toLowerCase())) {
+        const allOption = Array.from(block.querySelectorAll('label')).find(label =>
+          label.innerText.toLowerCase().includes("all")
+        );
+        if (allOption) {
+          const input = allOption.querySelector('input');
+          if (input) {
+            input.checked = true;
+            console.log(`"All are correct" selected for question "${question}"`);
+            return;
+          }
+        }
+      }
+
       // Attempt to match the answer to a radio button within the specific question block
       for (const radio of radios) {
         const label = radio.closest('label');
         const optionText = label ? label.innerText.trim() : null;
-        if (optionText && answer.includes(optionText)) {
+        if (optionText && answer === optionText) {
           radio.checked = true;
           console.log(`Radio selected for question "${question}" with answer: "${answer}"`);
           matched = true;
@@ -84,24 +111,25 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         }
       }
 
-      // Attempt to match the answer to a checkbox within the specific question block
-      if (!matched) {
+      // Handle multiple select (checkbox) answers
+      if (!matched && checkboxes.length > 0) {
+        const answers = answer.split(',').map(a => a.trim()); // Split comma-separated answers
         for (const checkbox of checkboxes) {
           const label = checkbox.closest('label');
           const optionText = label ? label.innerText.trim() : null;
-          if (optionText && answer.includes(optionText)) {
+          if (optionText && answers.includes(optionText)) {
             checkbox.checked = true;
-            console.log(`Checkbox selected for question "${question}" with answer: "${answer}"`);
-            matched = true;
-            break;
+            console.log(`Checkbox selected for question "${question}" with answer: "${optionText}"`);
           }
         }
+        matched = true;
       }
 
       // Fill in a text input if no radio or checkbox matched and only if it's a text answer
       if (!matched && textInput) {
-        textInput.value = answer;
-        console.log(`Text input filled for question "${question}" with answer: "${answer}"`);
+        const cleanAnswer = answer.replace(/^\d+\.\s*/, "").trim(); // Remove "1." prefix if present
+        textInput.value = cleanAnswer;
+        console.log(`Text input filled for question "${question}" with answer: "${cleanAnswer}"`);
       }
     };
 
@@ -112,7 +140,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       if (questionBlock) {
         console.log(`Processing question: "${question}" with answer: "${answer}"`);
         await updateFormElement(question, answer, questionBlock);
-        await delayRandom();  // Wait before processing the next question
+        await delayRandom(); // Wait before processing the next question
       } else {
         console.warn(`Question block not found for question: "${question}"`);
       }
