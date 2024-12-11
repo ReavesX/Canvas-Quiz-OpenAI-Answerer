@@ -1,5 +1,5 @@
 // OpenAI API Key
-const OPENAI_API_KEY = "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";
+const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY";
 // Listener for messages from the content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "questionsWithOptions") {
